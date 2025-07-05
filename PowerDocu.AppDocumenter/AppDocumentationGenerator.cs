@@ -9,7 +9,7 @@ namespace PowerDocu.AppDocumenter
 {
     public static class AppDocumentationGenerator
     {
-        public static List<AppEntity> GenerateDocumentation(string filePath, string fileFormat, bool fullDocumentation, bool documentDefaultChangesOnly, bool documentDefaults, bool documentSampleData = false, string wordTemplate = null, string outputPath = null)
+        public static List<AppEntity> GenerateDocumentation(string filePath, bool fullDocumentation, ConfigHelper config, string outputPath = null)
         {
             if (File.Exists(filePath))
             {
@@ -23,104 +23,107 @@ namespace PowerDocu.AppDocumenter
                 }
 
                 List<AppEntity> apps = appParserFromZip.getApps();
-                foreach (AppEntity app in apps)
+                if(config.documentApps) 
                 {
-                    string folderPath = path + CharsetHelper.GetSafeName(@"\AppDoc " + app.Name + @"\");
-                    Directory.CreateDirectory(folderPath);
-                    //build the graph showing the navigations between the different screens
-                    RootGraph rootGraph = RootGraph.CreateNew(GraphType.Directed, CharsetHelper.GetSafeName(app.Name));
-                    Graph.IntroduceAttribute(rootGraph, "compound", "true");
-                    Graph.IntroduceAttribute(rootGraph, "fontname", "helvetica");
-                    Node.IntroduceAttribute(rootGraph, "shape", "rectangle");
-                    Node.IntroduceAttribute(rootGraph, "color", "");
-                    Node.IntroduceAttribute(rootGraph, "style", "");
-                    Node.IntroduceAttribute(rootGraph, "fillcolor", "");
-                    Node.IntroduceAttribute(rootGraph, "label", "");
-                    Node.IntroduceAttribute(rootGraph, "fontname", "helvetica");
-                    //add all the screens
-                    foreach (ControlEntity ce in app.ScreenNavigations.Keys)
+                    foreach (AppEntity app in apps)
                     {
-                        List<string> destinations = app.ScreenNavigations[ce];
-                        if (destinations != null)
+                        string folderPath = path + CharsetHelper.GetSafeName(@"\AppDoc " + app.Name + @"\");
+                        Directory.CreateDirectory(folderPath);
+                        //build the graph showing the navigations between the different screens
+                        RootGraph rootGraph = RootGraph.CreateNew(GraphType.Directed, CharsetHelper.GetSafeName(app.Name));
+                        Graph.IntroduceAttribute(rootGraph, "compound", "true");
+                        Graph.IntroduceAttribute(rootGraph, "fontname", "helvetica");
+                        Node.IntroduceAttribute(rootGraph, "shape", "rectangle");
+                        Node.IntroduceAttribute(rootGraph, "color", "");
+                        Node.IntroduceAttribute(rootGraph, "style", "");
+                        Node.IntroduceAttribute(rootGraph, "fillcolor", "");
+                        Node.IntroduceAttribute(rootGraph, "label", "");
+                        Node.IntroduceAttribute(rootGraph, "fontname", "helvetica");
+                        //add all the screens
+                        foreach (ControlEntity ce in app.ScreenNavigations.Keys)
                         {
-                            foreach (string destination in destinations)
+                            List<string> destinations = app.ScreenNavigations[ce];
+                            if (destinations != null)
                             {
-                                if (!destination.Contains("(") && !destination.Contains(","))
+                                foreach (string destination in destinations)
                                 {
-                                    ControlEntity screen = ce.Screen();
-                                    if (screen != null)
+                                    if (!destination.Contains("(") && !destination.Contains(","))
                                     {
-                                        Node source = rootGraph.GetOrAddNode(CharsetHelper.GetSafeName(screen.Name));
-                                        source.SetAttributeHtml("label", "<table border=\"0\"><tr><td>" + CharsetHelper.GetSafeName(ce.Screen().Name) + "</td></tr></table>");
-                                        Node dest = rootGraph.GetOrAddNode(CharsetHelper.GetSafeName(destination));
-                                        dest.SetAttributeHtml("label", "<table border=\"0\"><tr><td>" + CharsetHelper.GetSafeName(destination) + "</td></tr></table>");
-                                        rootGraph.GetOrAddEdge(source, dest, ce.Screen().Name + "-" + destination);
-                                    }
-                                    else
-                                    {
-                                        if (ce.Type == "appinfo")
+                                        ControlEntity screen = ce.Screen();
+                                        if (screen != null)
                                         {
-                                            Node source = rootGraph.GetOrAddNode("App");
-                                            source.SetAttributeHtml("label", "<table border=\"0\"><tr><td>App</td></tr></table>");
-                                            source.SetAttribute("shape", "oval");
+                                            Node source = rootGraph.GetOrAddNode(CharsetHelper.GetSafeName(screen.Name));
+                                            source.SetAttributeHtml("label", "<table border=\"0\"><tr><td>" + CharsetHelper.GetSafeName(ce.Screen().Name) + "</td></tr></table>");
                                             Node dest = rootGraph.GetOrAddNode(CharsetHelper.GetSafeName(destination));
                                             dest.SetAttributeHtml("label", "<table border=\"0\"><tr><td>" + CharsetHelper.GetSafeName(destination) + "</td></tr></table>");
-                                            rootGraph.GetOrAddEdge(source, dest, "App -" + destination);
+                                            rootGraph.GetOrAddEdge(source, dest, ce.Screen().Name + "-" + destination);
                                         }
                                         else
                                         {
+                                            if (ce.Type == "appinfo")
+                                            {
+                                                Node source = rootGraph.GetOrAddNode("App");
+                                                source.SetAttributeHtml("label", "<table border=\"0\"><tr><td>App</td></tr></table>");
+                                                source.SetAttribute("shape", "oval");
+                                                Node dest = rootGraph.GetOrAddNode(CharsetHelper.GetSafeName(destination));
+                                                dest.SetAttributeHtml("label", "<table border=\"0\"><tr><td>" + CharsetHelper.GetSafeName(destination) + "</td></tr></table>");
+                                                rootGraph.GetOrAddEdge(source, dest, "App -" + destination);
+                                            }
+                                            else
+                                            {
+                                            }
                                         }
                                     }
+                                    else
+                                    {
+                                        //doing a "dumb approach" and simply checking if screens are mentioned in the destination. If so, we add them
+                                        foreach (ControlEntity screen in app.Controls.Where(o => o.Type == "screen").ToList())
+                                        {
+                                            if (destination.Contains(screen.Name))
+                                            {
+                                                Node source = rootGraph.GetOrAddNode(CharsetHelper.GetSafeName(ce.Screen().Name));
+                                                source.SetAttributeHtml("label", "<table border=\"0\"><tr><td>" + CharsetHelper.GetSafeName(ce.Screen().Name) + "</td></tr></table>");
+                                                Node dest = rootGraph.GetOrAddNode(CharsetHelper.GetSafeName(screen.Name));
+                                                dest.SetAttributeHtml("label", "<table border=\"0\"><tr><td>" + CharsetHelper.GetSafeName(screen.Name) + "</td></tr></table>");
+                                                rootGraph.GetOrAddEdge(source, dest, ce.Screen().Name + "-" + screen.Name);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        rootGraph.CreateLayout();
+                        rootGraph.ToPngFile(folderPath + "ScreenNavigation.png");
+                        rootGraph.ToSvgFile(folderPath + "ScreenNavigation.svg");
+                        //the following code is no longer required, as saving directly to PNG is now possible through GraphViz. Keeping it in case it is required in the future
+                        /*
+                        var svgDocument = SvgDocument.Open(folderPath + "ScreenNavigation.svg");
+                        //generating the PNG from the SVG
+                        using (var bitmap = svgDocument.Draw())
+                        {
+                            bitmap?.Save(folderPath + "ScreenNavigation.png");
+                        }*/
+                        if (fullDocumentation)
+                        {
+                            AppDocumentationContent content = new AppDocumentationContent(app, path);
+                            if (config.outputFormat.Equals(OutputFormatHelper.Word) || config.outputFormat.Equals(OutputFormatHelper.All))
+                            {
+                                //create the Word document
+                                NotificationHelper.SendNotification("Creating Word documentation");
+                                if (String.IsNullOrEmpty(config.wordTemplate) || !File.Exists(config.wordTemplate))
+                                {
+                                    AppWordDocBuilder wordzip = new AppWordDocBuilder(content, null, config.documentDefaultValuesCanvasApps, config.documentDefaultValuesCanvasApps, config.documentSampleData);
                                 }
                                 else
                                 {
-                                    //doing a "dumb approach" and simply checking if screens are mentioned in the destination. If so, we add them
-                                    foreach (ControlEntity screen in app.Controls.Where(o => o.Type == "screen").ToList())
-                                    {
-                                        if (destination.Contains(screen.Name))
-                                        {
-                                            Node source = rootGraph.GetOrAddNode(CharsetHelper.GetSafeName(ce.Screen().Name));
-                                            source.SetAttributeHtml("label", "<table border=\"0\"><tr><td>" + CharsetHelper.GetSafeName(ce.Screen().Name) + "</td></tr></table>");
-                                            Node dest = rootGraph.GetOrAddNode(CharsetHelper.GetSafeName(screen.Name));
-                                            dest.SetAttributeHtml("label", "<table border=\"0\"><tr><td>" + CharsetHelper.GetSafeName(screen.Name) + "</td></tr></table>");
-                                            rootGraph.GetOrAddEdge(source, dest, ce.Screen().Name + "-" + screen.Name);
-                                        }
-                                    }
+                                    AppWordDocBuilder wordzip = new AppWordDocBuilder(content, config.wordTemplate, config.documentChangesOnlyCanvasApps, config.documentDefaultValuesCanvasApps, config.documentSampleData);
                                 }
                             }
-                        }
-                    }
-                    rootGraph.CreateLayout();
-                    rootGraph.ToPngFile(folderPath + "ScreenNavigation.png");
-                    rootGraph.ToSvgFile(folderPath + "ScreenNavigation.svg");
-                    //the following code is no longer required, as saving directly to PNG is now possible through GraphViz. Keeping it in case it is required in the future
-                    /*
-                    var svgDocument = SvgDocument.Open(folderPath + "ScreenNavigation.svg");
-                    //generating the PNG from the SVG
-                    using (var bitmap = svgDocument.Draw())
-                    {
-                        bitmap?.Save(folderPath + "ScreenNavigation.png");
-                    }*/
-                    if (fullDocumentation)
-                    {
-                        AppDocumentationContent content = new AppDocumentationContent(app, path);
-                        if (fileFormat.Equals(OutputFormatHelper.Word) || fileFormat.Equals(OutputFormatHelper.All))
-                        {
-                            //create the Word document
-                            NotificationHelper.SendNotification("Creating Word documentation");
-                            if (String.IsNullOrEmpty(wordTemplate) || !File.Exists(wordTemplate))
+                            if (config.outputFormat.Equals(OutputFormatHelper.Markdown) || config.outputFormat.Equals(OutputFormatHelper.All))
                             {
-                                AppWordDocBuilder wordzip = new AppWordDocBuilder(content, null, documentDefaultChangesOnly, documentDefaults, documentSampleData);
+                                NotificationHelper.SendNotification("Creating Markdown documentation");
+                                AppMarkdownBuilder markdownFile = new AppMarkdownBuilder(content);
                             }
-                            else
-                            {
-                                AppWordDocBuilder wordzip = new AppWordDocBuilder(content, wordTemplate, documentDefaultChangesOnly, documentDefaults, documentSampleData);
-                            }
-                        }
-                        if (fileFormat.Equals(OutputFormatHelper.Markdown) || fileFormat.Equals(OutputFormatHelper.All))
-                        {
-                            NotificationHelper.SendNotification("Creating Markdown documentation");
-                            AppMarkdownBuilder markdownFile = new AppMarkdownBuilder(content);
                         }
                     }
                 }

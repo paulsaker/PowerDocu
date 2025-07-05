@@ -26,14 +26,29 @@ namespace PowerDocu.GUI
 
         private void LoadConfig()
         {
-            ConfigHelper configHelper = new ConfigHelper();
+            if (configHelper == null)
+                configHelper = new ConfigHelper();
             configHelper.LoadConfigurationFromFile();
+
+            // Load existing settings
             outputFormatComboBox.SelectedItem = configHelper.outputFormat;
             documentChangesOnlyRadioButton.Checked = configHelper.documentChangesOnlyCanvasApps;
             documentEverythingRadioButton.Checked = !configHelper.documentChangesOnlyCanvasApps;
             documentDefaultsCheckBox.Checked = configHelper.documentDefaultValuesCanvasApps;
             documentSampleDataCheckBox.Checked = configHelper.documentSampleData;
             flowActionSortOrderComboBox.SelectedItem = configHelper.flowActionSortOrder;
+
+            // Load newly added settings
+            solutionCheckBox.Checked = configHelper.documentSolution;
+            flowsCheckBox.Checked = configHelper.documentFlows;
+            appsCheckBox.Checked = configHelper.documentApps;
+            appPropertiesCheckBox.Checked = configHelper.documentAppProperties;
+            variablesCheckBox.Checked = configHelper.documentAppVariables;
+            dataSourcesCheckBox.Checked = configHelper.documentAppDataSources;
+            resourcesCheckBox.Checked = configHelper.documentAppResources;
+            controlsCheckBox.Checked = configHelper.documentAppControls;
+
+            // Load Word template if available
             if (configHelper.wordTemplate != null)
             {
                 openWordTemplateDialog.FileName = configHelper.wordTemplate;
@@ -76,7 +91,8 @@ namespace PowerDocu.GUI
             if (openFileToParseDialog.ShowDialog() == DialogResult.OK)
             {
                 selectedFilesToDocumentLabel.Text =
-                    "Select either the full documentation or just the image generation to start the documentation process for the following selected files:" + Environment.NewLine;
+                    "Select either the full documentation or just the image generation to start the documentation process for the following selected files:"
+                    + Environment.NewLine;
                 foreach (string fileName in openFileToParseDialog.FileNames)
                 {
                     selectedFilesToDocumentLabel.Text +=
@@ -138,19 +154,33 @@ namespace PowerDocu.GUI
                 $"Connector icons have been updated ({ConnectorHelper.numberOfConnectors()} connectors, {ConnectorHelper.numberOfConnectorIcons()} icons)";
         }
 
+        private void SyncConfigHelper()
+        {
+            if (configHelper == null)
+            {
+                configHelper = new ConfigHelper();
+            }
+            configHelper.outputFormat = outputFormatComboBox.SelectedItem.ToString();
+            configHelper.documentChangesOnlyCanvasApps = documentChangesOnlyRadioButton.Checked;
+            configHelper.documentDefaultValuesCanvasApps = documentDefaultsCheckBox.Checked;
+            configHelper.documentSampleData = documentSampleDataCheckBox.Checked;
+            configHelper.flowActionSortOrder = flowActionSortOrderComboBox.SelectedItem.ToString();
+            configHelper.wordTemplate = openWordTemplateDialog.FileName;
+            configHelper.documentSolution = solutionCheckBox.Checked;
+            configHelper.documentFlows = flowsCheckBox.Checked;
+            configHelper.documentApps = appsCheckBox.Checked;
+            configHelper.documentAppProperties = appPropertiesCheckBox.Checked;
+            configHelper.documentAppVariables = variablesCheckBox.Checked;
+            configHelper.documentAppDataSources = dataSourcesCheckBox.Checked;
+            configHelper.documentAppResources = resourcesCheckBox.Checked;
+            configHelper.documentAppControls = controlsCheckBox.Checked;
+        }
+
         private async void SaveConfigButton_Click(object sender, EventArgs e)
         {
             statusLabel.Text = "Saving configuration...";
             statusLabel.Refresh();
-            ConfigHelper configHelper = new ConfigHelper
-            {
-                outputFormat = outputFormatComboBox.SelectedItem.ToString(),
-                documentChangesOnlyCanvasApps = documentChangesOnlyRadioButton.Checked,
-                documentDefaultValuesCanvasApps = documentDefaultsCheckBox.Checked,
-                documentSampleData = documentSampleDataCheckBox.Checked,
-                flowActionSortOrder = flowActionSortOrderComboBox.SelectedItem.ToString(),
-                wordTemplate = openWordTemplateDialog.FileName
-            };
+            SyncConfigHelper();
             configHelper.SaveConfigurationToFile();
             statusLabel.Text = "New default configuration has been saved.";
         }
@@ -168,6 +198,7 @@ namespace PowerDocu.GUI
         //fullDocumentation = true to start full documentation generation , false to start image generation
         private void startDocumentation(bool fullDocumentation = true)
         {
+            SyncConfigHelper();
             statusLabel.Text =
                 $"Starting documentation process for {openFileToParseDialog.FileNames.Length} files...";
             statusLabel.Refresh();
@@ -190,29 +221,16 @@ namespace PowerDocu.GUI
                         );
                         SolutionDocumentationGenerator.GenerateDocumentation(
                             fileName,
-                            outputFormatComboBox.SelectedItem.ToString(),
                             fullDocumentation,
-                            documentChangesOnlyRadioButton.Checked,
-                            documentDefaultsCheckBox.Checked,
-                            documentSampleDataCheckBox.Checked,
-                            flowActionSortOrderComboBox.SelectedItem.ToString(),
-                            (openWordTemplateDialog.FileName != "")
-                                ? openWordTemplateDialog.FileName
-                                : null
+                            configHelper
                         );
                     }
                     else if (fileName.EndsWith(".msapp"))
                     {
                         AppDocumentationGenerator.GenerateDocumentation(
                             fileName,
-                            outputFormatComboBox.SelectedItem.ToString(),
                             fullDocumentation,
-                            documentChangesOnlyRadioButton.Checked,
-                            documentDefaultsCheckBox.Checked,
-                            documentSampleDataCheckBox.Checked,
-                            (openWordTemplateDialog.FileName != "")
-                                ? openWordTemplateDialog.FileName
-                                : null
+                            configHelper
                         );
                     }
                     NotificationHelper.SendNotification("Documentation generation completed.");

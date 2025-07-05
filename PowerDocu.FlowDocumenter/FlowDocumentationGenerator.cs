@@ -7,7 +7,7 @@ namespace PowerDocu.FlowDocumenter
 {
     public static class FlowDocumentationGenerator
     {
-        public static List<FlowEntity> GenerateDocumentation(string filePath, string fileFormat, bool fullDocumentation, string flowActionSortOrder, string wordTemplate = null, string outputPath = null)
+        public static List<FlowEntity> GenerateDocumentation(string filePath, bool fullDocumentation, ConfigHelper config, string outputPath = null)
         {
             if (File.Exists(filePath))
             {
@@ -19,39 +19,42 @@ namespace PowerDocu.FlowDocumenter
                     path += @"\Solution " + CharsetHelper.GetSafeName(Path.GetFileNameWithoutExtension(filePath));
                 }
                 List<FlowEntity> flows = flowParserFromZip.getFlows();
-                foreach (FlowEntity flow in flows)
+                if (config.documentFlows)
                 {
-                    // Only process cloud flows
-                    if (flow.flowType == FlowEntity.FlowType.CloudFlow || flow.flowType == FlowEntity.FlowType.Unknown)
+                    foreach (FlowEntity flow in flows)
                     {
-                        GraphBuilder gbzip = new GraphBuilder(flow, path);
-                        gbzip.buildTopLevelGraph();
-                        gbzip.buildDetailedGraph();
-                        if (fullDocumentation)
+                        // Only process cloud flows
+                        if (flow.flowType == FlowEntity.FlowType.CloudFlow || flow.flowType == FlowEntity.FlowType.Unknown)
                         {
-                            FlowActionSortOrder sortOrder = flowActionSortOrder switch
+                            GraphBuilder gbzip = new GraphBuilder(flow, path);
+                            gbzip.buildTopLevelGraph();
+                            gbzip.buildDetailedGraph();
+                            if (fullDocumentation)
                             {
-                                "By order of appearance" => FlowActionSortOrder.SortByOrder,
-                                "By name" => FlowActionSortOrder.SortByName,
-                                _ => FlowActionSortOrder.SortByName
-                            };
-                            FlowDocumentationContent content = new FlowDocumentationContent(flow, path, sortOrder);
-                            if (fileFormat.Equals(OutputFormatHelper.Word) || fileFormat.Equals(OutputFormatHelper.All))
-                            {
-                                NotificationHelper.SendNotification("Creating Word documentation");
-                                if (String.IsNullOrEmpty(wordTemplate) || !File.Exists(wordTemplate))
+                                FlowActionSortOrder sortOrder = config.flowActionSortOrder switch
                                 {
-                                    FlowWordDocBuilder wordzip = new FlowWordDocBuilder(content, null);
-                                }
-                                else
+                                    "By order of appearance" => FlowActionSortOrder.SortByOrder,
+                                    "By name" => FlowActionSortOrder.SortByName,
+                                    _ => FlowActionSortOrder.SortByName
+                                };
+                                FlowDocumentationContent content = new FlowDocumentationContent(flow, path, sortOrder);
+                                if (config.outputFormat.Equals(OutputFormatHelper.Word) || config.outputFormat.Equals(OutputFormatHelper.All))
                                 {
-                                    FlowWordDocBuilder wordzip = new FlowWordDocBuilder(content, wordTemplate);
+                                    NotificationHelper.SendNotification("Creating Word documentation");
+                                    if (String.IsNullOrEmpty(config.wordTemplate) || !File.Exists(config.wordTemplate))
+                                    {
+                                        FlowWordDocBuilder wordzip = new FlowWordDocBuilder(content, null);
+                                    }
+                                    else
+                                    {
+                                        FlowWordDocBuilder wordzip = new FlowWordDocBuilder(content, config.wordTemplate);
+                                    }
                                 }
-                            }
-                            if (fileFormat.Equals(OutputFormatHelper.Markdown) || fileFormat.Equals(OutputFormatHelper.All))
-                            {
-                                NotificationHelper.SendNotification("Creating Markdown documentation");
-                                FlowMarkdownBuilder markdownFile = new FlowMarkdownBuilder(content);
+                                if (config.outputFormat.Equals(OutputFormatHelper.Markdown) || config.outputFormat.Equals(OutputFormatHelper.All))
+                                {
+                                    NotificationHelper.SendNotification("Creating Markdown documentation");
+                                    FlowMarkdownBuilder markdownFile = new FlowMarkdownBuilder(content);
+                                }
                             }
                         }
                     }

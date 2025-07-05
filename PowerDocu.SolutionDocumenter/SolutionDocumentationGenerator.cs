@@ -9,68 +9,63 @@ namespace PowerDocu.SolutionDocumenter
 {
     public static class SolutionDocumentationGenerator
     {
-
         private static List<FlowEntity> flows;
         private static List<AppEntity> apps;
-        public static void GenerateDocumentation(string filePath, string fileFormat, bool fullDocumentation, bool documentDefaultChangesOnly, bool documentDefaults, bool documentSampleData, string flowActionSortOrder, string wordTemplate = null, string outputPath = null)
+
+        public static void GenerateDocumentation(string filePath, bool fullDocumentation, ConfigHelper config, string outputPath=null)
         {
             if (File.Exists(filePath))
             {
                 DateTime startDocGeneration = DateTime.Now;
+
                 flows = FlowDocumentationGenerator.GenerateDocumentation(
                     filePath,
-                    fileFormat,
                     fullDocumentation,
-                    flowActionSortOrder,
-                    wordTemplate,
+                    config,
                     outputPath
                 );
+
                 apps = AppDocumentationGenerator.GenerateDocumentation(
                     filePath,
-                    fileFormat,
                     fullDocumentation,
-                    documentDefaultChangesOnly,
-                    documentDefaults,
-                    documentSampleData,
-                    wordTemplate,
+                    config,
                     outputPath
                 );
-                SolutionParser solutionParser = new SolutionParser(filePath);
-                if (solutionParser.solution != null)
-                {
-                    string path = outputPath == null ?
-                        Path.GetDirectoryName(filePath) + @"\Solution " + CharsetHelper.GetSafeName(Path.GetFileNameWithoutExtension(filePath) + @"\") :
-                        outputPath + @"\" + CharsetHelper.GetSafeName(Path.GetFileNameWithoutExtension(filePath) + @"\");
 
-                    SolutionDocumentationContent solutionContent = new SolutionDocumentationContent(solutionParser.solution, apps, flows, path);
-                    DataverseGraphBuilder dataverseGraphBuilder = new DataverseGraphBuilder(solutionContent);
-                    if (fullDocumentation)
+                // Parse and document the solution if enabled
+                if (config.documentSolution)
+                {
+                    SolutionParser solutionParser = new SolutionParser(filePath);
+                    if (solutionParser.solution != null)
                     {
-                        if (fileFormat.Equals(OutputFormatHelper.Word) || fileFormat.Equals(OutputFormatHelper.All))
+                        string path = outputPath == null
+                            ? Path.GetDirectoryName(filePath) + @"\Solution " + CharsetHelper.GetSafeName(Path.GetFileNameWithoutExtension(filePath) + @"\")
+                            : outputPath + @"\" + CharsetHelper.GetSafeName(Path.GetFileNameWithoutExtension(filePath) + @"\");
+
+                        SolutionDocumentationContent solutionContent = new SolutionDocumentationContent(solutionParser.solution, apps, flows, path);
+                        DataverseGraphBuilder dataverseGraphBuilder = new DataverseGraphBuilder(solutionContent);
+
+                        if (fullDocumentation)
                         {
-                            //create the Word document
-                            NotificationHelper.SendNotification("Creating Solution documentation");
-                            if (String.IsNullOrEmpty(wordTemplate) || !File.Exists(wordTemplate))
+                            if (config.outputFormat.Equals(OutputFormatHelper.Word) || config.outputFormat.Equals(OutputFormatHelper.All))
                             {
-                                SolutionWordDocBuilder wordzip = new SolutionWordDocBuilder(solutionContent, null);
+                                NotificationHelper.SendNotification("Creating Solution documentation");
+                                SolutionWordDocBuilder wordzip = new SolutionWordDocBuilder(solutionContent, config.wordTemplate);
                             }
-                            else
+                            if (config.outputFormat.Equals(OutputFormatHelper.Markdown) || config.outputFormat.Equals(OutputFormatHelper.All))
                             {
-                                SolutionWordDocBuilder wordzip = new SolutionWordDocBuilder(solutionContent, wordTemplate);
+                                SolutionMarkdownBuilder mdDoc = new SolutionMarkdownBuilder(solutionContent);
                             }
-                        }
-                        if (fileFormat.Equals(OutputFormatHelper.Markdown) || fileFormat.Equals(OutputFormatHelper.All))
-                        {
-                            SolutionMarkdownBuilder mdDoc = new SolutionMarkdownBuilder(solutionContent);
                         }
                     }
-                    DateTime endDocGeneration = DateTime.Now;
-                    NotificationHelper.SendNotification("SolutionDocumenter: Created documentation for " + filePath + ". Total solution documentation completed in " + (endDocGeneration - startDocGeneration).TotalSeconds + " seconds.");
                 }
+
+                DateTime endDocGeneration = DateTime.Now;
+                NotificationHelper.SendNotification($"SolutionDocumenter: Created documentation for {filePath}. Total solution documentation completed in {(endDocGeneration - startDocGeneration).TotalSeconds} seconds.");
             }
             else
             {
-                NotificationHelper.SendNotification("File not found: " + filePath);
+                NotificationHelper.SendNotification($"File not found: {filePath}");
             }
         }
     }
