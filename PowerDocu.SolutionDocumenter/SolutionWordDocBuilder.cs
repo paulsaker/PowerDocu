@@ -281,6 +281,7 @@ namespace PowerDocu.SolutionDocumenter
                 Table table = CreateTable();
                 table.Append(CreateRow(new Text("Primary Column"), new Text(tableEntity.getPrimaryColumn())));
                 table.Append(CreateRow(new Text("Description"), new Text(tableEntity.getDescription())));
+                table.Append(CreateRow(new Text("Auditing"), new Text(tableEntity.IsAuditEnabled()?"Enabled":"Disabled")));
                 body.Append(table);
                 para = body.AppendChild(new Paragraph());
                 run = para.AppendChild(new Run());
@@ -288,6 +289,7 @@ namespace PowerDocu.SolutionDocumenter
                 table.Append(CreateHeaderRow(new Text("Display Name"),
                                              new Text("Name"),
                                              new Text("Data type"),
+                                             new Text("Auditing"),
                                              new Text("Customizable"),
                                              new Text("Required"),
                                              new Text("Searchable")));
@@ -298,6 +300,7 @@ namespace PowerDocu.SolutionDocumenter
                         new Text(columnEntity.getDisplayName() + primaryNameColumn),
                         new Text(columnEntity.getName()),
                         new Text(columnEntity.getDataType()),
+                        new Text(columnEntity.IsAuditEnabled()?"Enabled":"Disabled"),
                         new Text(columnEntity.isCustomizable().ToString()),
                         new Text(columnEntity.isRequired().ToString()),
                         new Text(columnEntity.isSearchable().ToString())));

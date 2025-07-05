@@ -288,7 +288,8 @@ namespace PowerDocu.SolutionDocumenter
                 List<MdTableRow> tableRows = new List<MdTableRow>
                 {
                     new MdTableRow("Primary Column", tableEntity.getPrimaryColumn()),
-                    new MdTableRow("Description", tableEntity.getDescription())
+                    new MdTableRow("Description", tableEntity.getDescription()),
+                    new MdTableRow("Auditing", tableEntity.IsAuditEnabled()?"Enabled":"Disabled")
                 };
                 solutionDoc.Root.Add(new MdTable(new MdTableRow("Property", "Value"), tableRows));
                 tableRows = new List<MdTableRow>();
@@ -301,12 +302,13 @@ namespace PowerDocu.SolutionDocumenter
                         tableRows.Add(new MdTableRow(columnEntity.getDisplayName() + primaryNameColumn,
                                                     columnEntity.getName(),
                                                     columnEntity.getDataType(),
+                                                    columnEntity.IsAuditEnabled()?"Enabled":"Disabled",
                                                     columnEntity.isCustomizable().ToString(),
                                                     columnEntity.isRequired().ToString(),
                                                     columnEntity.isSearchable().ToString()
                                                     ));
                     }
-                    solutionDoc.Root.Add(new MdTable(new MdTableRow("Display Name", "Name", "Data type", "Customizable", "Required", "Searchable"), tableRows));
+                    solutionDoc.Root.Add(new MdTable(new MdTableRow("Display Name", "Name", "Data type", "Auditing", "Customizable", "Required", "Searchable"), tableRows));
                 }
             }
             solutionDoc.Root.Add(new MdHeading("Table Relationships", 4));
