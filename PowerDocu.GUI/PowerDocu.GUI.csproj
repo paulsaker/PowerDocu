@@ -28,4 +28,27 @@
     <AssemblyName>PowerDocu</AssemblyName>
   </PropertyGroup>
 
+
+<!-- newer versions of glib and gobject as older versions that are part of graphviz have a vulnerability-->
+<!-- After build: copy from lib\ to build root -->
+<Target Name="CopyDllsToRootAfterBuild" AfterTargets="Build">
+  <ItemGroup>
+    <DllsToCopy Include="$(OutputPath)lib\glib-2.dll" />
+    <DllsToCopy Include="$(OutputPath)lib\gobject-2.dll" />
+  </ItemGroup>
+
+  <Copy SourceFiles="@(DllsToCopy)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
+</Target>
+
+<!-- After publish: copy from lib\ to publish root -->
+<Target Name="CopyDllsToRootAfterPublish" AfterTargets="Publish">
+  <ItemGroup>
+    <DllsToCopy Include="$(OutputPath)lib\glib-2.dll" />
+    <DllsToCopy Include="$(OutputPath)lib\gobject-2.dll" />
+  </ItemGroup>
+
+  <Copy SourceFiles="@(DllsToCopy)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+</Target>
+
+
 </Project>
