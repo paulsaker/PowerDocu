@@ -74,13 +74,28 @@ namespace PowerDocu.GUI
                     NotificationHelper.SendNotification($"{itemToDocument} not found. Skipping.");
                     break;
                 }
+                ConfigHelper configHelper = new ConfigHelper();
+                configHelper.outputFormat = options.FileFormat;
+                configHelper.documentChangesOnlyCanvasApps = options.ChangesOnly;
+                configHelper.documentDefaultValuesCanvasApps = options.DefaultValues;
+                configHelper.documentSampleData = options.SampleDataSources;
+                configHelper.flowActionSortOrder = options.SortFlowActions;
+                configHelper.wordTemplate = options.WordTemplate;
+                configHelper.documentSolution = options.DocumentSolution;
+                configHelper.documentFlows = options.DocumentFlows;
+                configHelper.documentApps = options.DocumentApps;
+                configHelper.documentAppProperties = options.DocumentAppProperties;
+                configHelper.documentAppVariables = options.DocumentAppVariables;
+                configHelper.documentAppDataSources = options.DocumentAppDataSources;
+                configHelper.documentAppResources = options.DocumentAppResources;
+                configHelper.documentAppControls = options.DocumentAppControls;
                 switch (Path.GetExtension(itemToDocument))
                 {
                     case ".zip":
-                        SolutionDocumentationGenerator.GenerateDocumentation(itemToDocument, options.FileFormat, options.FullDocumentation, options.ChangesOnly, options.DefaultValues, options.SampleDataSources, options.SortFlowActions, options.WordTemplate, options.OutputPath);
+                        SolutionDocumentationGenerator.GenerateDocumentation(itemToDocument, options.FullDocumentation, configHelper, options.OutputPath);
                         break;
                     case ".msapp":
-                        AppDocumentationGenerator.GenerateDocumentation(itemToDocument, options.FileFormat, options.FullDocumentation, options.ChangesOnly, options.DefaultValues, options.SampleDataSources, options.WordTemplate, options.OutputPath);
+                        AppDocumentationGenerator.GenerateDocumentation(itemToDocument, options.FullDocumentation, configHelper, options.OutputPath);
                         break;
                 }
             }
