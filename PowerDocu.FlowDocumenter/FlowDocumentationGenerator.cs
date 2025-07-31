@@ -9,7 +9,7 @@ namespace PowerDocu.FlowDocumenter
     {
         public static List<FlowEntity> GenerateDocumentation(string filePath, bool fullDocumentation, ConfigHelper config, string outputPath = null)
         {
-            if (File.Exists(filePath))
+            if (File.Exists(filePath) || Directory.Exists(filePath))
             {
                 string path = outputPath == null ? Path.GetDirectoryName(filePath) : $"{outputPath}/{Path.GetFileNameWithoutExtension(filePath)}";
                 DateTime startDocGeneration = DateTime.Now;
@@ -65,7 +65,7 @@ namespace PowerDocu.FlowDocumenter
             }
             else
             {
-                NotificationHelper.SendNotification("File not found: " + filePath);
+                NotificationHelper.SendNotification("FD-File not found: " + filePath);
             }
             return null;
         }

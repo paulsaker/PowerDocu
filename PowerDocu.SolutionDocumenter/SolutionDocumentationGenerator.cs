@@ -14,7 +14,7 @@ namespace PowerDocu.SolutionDocumenter
 
         public static void GenerateDocumentation(string filePath, bool fullDocumentation, ConfigHelper config, string outputPath=null)
         {
-            if (File.Exists(filePath))
+            if (File.Exists(filePath) || (config.getFromDirectory && Directory.Exists(filePath)))
             {
                 DateTime startDocGeneration = DateTime.Now;
 
@@ -65,7 +65,7 @@ namespace PowerDocu.SolutionDocumenter
             }
             else
             {
-                NotificationHelper.SendNotification($"File not found: {filePath}");
+                NotificationHelper.SendNotification($"SDG-File not found: {filePath}");
             }
         }
     }

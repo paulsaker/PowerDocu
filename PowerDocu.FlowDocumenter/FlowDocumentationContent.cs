@@ -19,7 +19,7 @@ namespace PowerDocu.FlowDocumenter
         public FlowDocumentationContent(FlowEntity flow, string path, FlowActionSortOrder sortOrder = FlowActionSortOrder.SortByName)
         {
             NotificationHelper.SendNotification("Preparing documentation content for " + flow.Name);
-            folderPath = path + CharsetHelper.GetSafeName(@"\FlowDoc " + flow.Name + @"\");
+            folderPath = path + CharsetHelper.GetSafeName(@"\" + FlowParser.GetNameWithNoGuid(flow.Name) + @"\");
             filename = CharsetHelper.GetSafeName(flow.Name);
             metadata = new FlowMetadata(flow);
             overview = new FlowOverview();

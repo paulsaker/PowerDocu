@@ -30,7 +30,8 @@ namespace PowerDocu.GUI
                 NotificationHelper.AddNotificationReceiver(new ConsoleNotificationReceiver());
 
                 var options = new CommandLineOptions();
-
+                Console.WriteLine("Attach Debugger to this process if needed, then press Enter to continue...");
+                Console.ReadLine();
                 Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed(parsed => { options = parsed; });
 
                 await CheckForLatestVersion();
@@ -43,16 +44,20 @@ namespace PowerDocu.GUI
                     case false when options.ItemsToDocument == null || !options.ItemsToDocument.Any():
                         NotificationHelper.SendNotification($"No items to generate documentation on");
                         break;
-                    case false when !options.ItemsToDocument.All(itemToDocument =>
+                    case false when !options.GetFromDirectory && !options.ItemsToDocument.All(itemToDocument =>
                         new List<string> { ".zip", ".msapp" }.Contains(Path.GetExtension(itemToDocument))):
                         NotificationHelper.SendNotification(
-                            $"No valid file provided, valid files are either .zip or .msapp formats");
+                            $"Invalid file provided, valid files are either .zip or .msapp formats or use --getFromDirectory");
                         break;
                     case false when options.Word && !string.IsNullOrEmpty(options.WordTemplate) &&
                                     !new List<string> { ".docx", ".docm", ".dtox" }.Contains(
                                         Path.GetExtension(options.WordTemplate)):
                         NotificationHelper.SendNotification(
                             $"An invalid word document was provided as the Word Template, expected the file to be .docx, .docm or .dotx format");
+                        break;
+                    case false when options.GetFromDirectory && !Directory.Exists(options.ItemsToDocument.FirstOrDefault()):
+                        NotificationHelper.SendNotification(
+                            $"The directory {options.ItemsToDocument.FirstOrDefault()} does not exist, please create it before running the command");
                         break;
                     default:
                         GenerateDocumentation(options);
@@ -69,7 +74,7 @@ namespace PowerDocu.GUI
         {
             foreach (var itemToDocument in options.ItemsToDocument!)
             {
-                if (!File.Exists(itemToDocument))
+                if (!File.Exists(itemToDocument) && !Directory.Exists(itemToDocument))
                 {
                     NotificationHelper.SendNotification($"{itemToDocument} not found. Skipping.");
                     break;
@@ -89,6 +94,7 @@ namespace PowerDocu.GUI
                 configHelper.documentAppDataSources = options.DocumentAppDataSources;
                 configHelper.documentAppResources = options.DocumentAppResources;
                 configHelper.documentAppControls = options.DocumentAppControls;
+                configHelper.getFromDirectory = options.GetFromDirectory;
                 switch (Path.GetExtension(itemToDocument))
                 {
                     case ".zip":
@@ -96,6 +102,9 @@ namespace PowerDocu.GUI
                         break;
                     case ".msapp":
                         AppDocumentationGenerator.GenerateDocumentation(itemToDocument, options.FullDocumentation, configHelper, options.OutputPath);
+                        break;
+                    default:
+                        SolutionDocumentationGenerator.GenerateDocumentation(itemToDocument, options.FullDocumentation, configHelper, options.OutputPath);
                         break;
                 }
             }

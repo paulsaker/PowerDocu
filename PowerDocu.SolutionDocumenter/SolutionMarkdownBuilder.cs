@@ -350,7 +350,7 @@ namespace PowerDocu.SolutionDocumenter
             using var sw = new StreamWriter($"{content.folderPath}/.order");
             foreach (var flow in content.flows)
             {
-                sw.WriteLine(CharsetHelper.GetSafeName(@"FlowDoc " + flow.Name));
+                sw.WriteLine(CharsetHelper.GetSafeName(@"FlowDoc " + FlowParser.GetNameWithNoGuid(flow.Name)));
             }
 
             foreach (var app in content.apps)

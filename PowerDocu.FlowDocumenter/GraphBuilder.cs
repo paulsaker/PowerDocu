@@ -21,7 +21,7 @@ namespace PowerDocu.FlowDocumenter
         public GraphBuilder(FlowEntity flowToUse, string path)
         {
             flow = flowToUse;
-            folderPath = path + CharsetHelper.GetSafeName(@"\FlowDoc " + flow.Name + @"\");
+            folderPath = path + CharsetHelper.GetSafeName(@"\" + FlowParser.GetNameWithNoGuid(flow.Name) + @"\");
             Directory.CreateDirectory(folderPath);
         }
 

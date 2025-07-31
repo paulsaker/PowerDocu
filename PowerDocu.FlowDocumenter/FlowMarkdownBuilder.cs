@@ -346,6 +346,12 @@ namespace PowerDocu.FlowDocumenter
                         actionsDoc.Root.Add(table);
                     }
                 }
+                //Add Parent Action if Present
+                if (action.parent != null)
+                {
+                    actionsDoc.Root.Add(new MdHeading("Parent Action", 3));
+                    actionsDoc.Root.Add(new MdParagraph(new MdLinkSpan(action.parent.Name, getLinkFromAction(action.parent.Name))));
+                }
                 if (action.Neighbours.Count > 0)
                 {
                     actionsDoc.Root.Add(new MdHeading("Next Action(s) Conditions", 3));

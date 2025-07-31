@@ -11,7 +11,7 @@ namespace PowerDocu.AppDocumenter
     {
         public static List<AppEntity> GenerateDocumentation(string filePath, bool fullDocumentation, ConfigHelper config, string outputPath = null)
         {
-            if (File.Exists(filePath))
+            if (File.Exists(filePath)||(config.getFromDirectory && Directory.Exists(filePath)))
             {
                 string path = outputPath == null ? Path.GetDirectoryName(filePath) : $"{outputPath}/{Path.GetFileNameWithoutExtension(filePath)}";
                 DateTime startDocGeneration = DateTime.Now;
@@ -131,9 +131,13 @@ namespace PowerDocu.AppDocumenter
                 NotificationHelper.SendNotification("AppDocumenter: Created Word documentation for " + filePath + ". A total of " + appParserFromZip.getApps().Count + " files were processed in " + (endDocGeneration - startDocGeneration).TotalSeconds + " seconds.");
                 return apps;
             }
+            else if (config.getFromDirectory && Directory.Exists(filePath))
+            {
+
+            }
             else
             {
-                NotificationHelper.SendNotification("File not found: " + filePath);
+                NotificationHelper.SendNotification("ADG-File not found: " + filePath);
             }
             return null;
         }

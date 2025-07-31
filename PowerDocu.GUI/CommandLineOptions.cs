@@ -44,7 +44,8 @@ namespace PowerDocu.GUI
         public bool DocumentAppResources { get; set; }
         [Option('g', "documentAppControls", HelpText = "Document app controls", Required = false, Default = true)]
         public bool DocumentAppControls { get; set; }
-
+        [Option('y', "getFromDirectory", HelpText = "Get items from directory", Required = false, Default = false)]
+        public bool GetFromDirectory { get; set; }
         internal string FileFormat => this switch
         {
             { Word: true, Markdown: true } => OutputFormatHelper.All,
@@ -59,5 +60,6 @@ namespace PowerDocu.GUI
             { SortFlowsByName: false } => "By order of appearance",
             _ => "By order of appearance"
         };
+      
     }
 }
