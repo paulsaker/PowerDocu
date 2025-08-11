@@ -11,7 +11,8 @@ namespace PowerDocu.FlowDocumenter
         {
             if (File.Exists(filePath) || Directory.Exists(filePath))
             {
-                string path = outputPath == null ? Path.GetDirectoryName(filePath) : $"{outputPath}/{Path.GetFileNameWithoutExtension(filePath)}";
+                //string path = outputPath == null ? Path.GetDirectoryName(filePath) : $"{outputPath}/{Path.GetFileNameWithoutExtension(filePath)}";
+                string path = outputPath == null ? Path.GetDirectoryName(filePath) : $"{outputPath}";
                 DateTime startDocGeneration = DateTime.Now;
                 FlowParser flowParserFromZip = new FlowParser(filePath);
                 if (outputPath == null && flowParserFromZip.packageType == FlowParser.PackageType.SolutionPackage)

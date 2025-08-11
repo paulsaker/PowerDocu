@@ -60,7 +60,8 @@ namespace PowerDocu.GUI
                             $"The directory {options.ItemsToDocument.FirstOrDefault()} does not exist, please create it before running the command");
                         break;
                     default:
-                        GenerateDocumentation(options);
+                        GenerateDocumentation(options); 
+
                         break;
                 }
             }

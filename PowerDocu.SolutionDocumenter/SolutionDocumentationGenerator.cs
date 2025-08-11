@@ -38,10 +38,13 @@ namespace PowerDocu.SolutionDocumenter
                     SolutionParser solutionParser = new SolutionParser(filePath);
                     if (solutionParser.solution != null)
                     {
+                        //string path = outputPath == null
+                        //    ? Path.GetDirectoryName(filePath) + @"\Solution " + CharsetHelper.GetSafeName(Path.GetFileNameWithoutExtension(filePath) + @"\")
+                        //    : outputPath + @"\" + CharsetHelper.GetSafeName(Path.GetFileNameWithoutExtension(filePath) + @"\");
+
                         string path = outputPath == null
                             ? Path.GetDirectoryName(filePath) + @"\Solution " + CharsetHelper.GetSafeName(Path.GetFileNameWithoutExtension(filePath) + @"\")
-                            : outputPath + @"\" + CharsetHelper.GetSafeName(Path.GetFileNameWithoutExtension(filePath) + @"\");
-
+                            : outputPath;
                         SolutionDocumentationContent solutionContent = new SolutionDocumentationContent(solutionParser.solution, apps, flows, path);
                         DataverseGraphBuilder dataverseGraphBuilder = new DataverseGraphBuilder(solutionContent);
 
