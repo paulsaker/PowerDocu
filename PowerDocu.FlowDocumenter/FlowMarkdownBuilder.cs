@@ -203,6 +203,19 @@ namespace PowerDocu.FlowDocumenter
     .Where(action => action.Type.Equals("Workflow", StringComparison.OrdinalIgnoreCase))
     .ToList(); 
             NotificationHelper.SendNotification(getCodeBlock("Found " + workflowActions.Count + " child flows"));
+
+            if (workflowActions.Count > 0)
+            {
+                mainDocument.Root.Add(new MdHeading("Child Flows", 2));
+                mainDocument.Root.Add(new MdParagraph(new MdTextSpan("The following child flows are used in this flow:")));
+                List<MdListItem> childFlowsLinks = new List<MdListItem>();
+                foreach (ActionNode action in workflowActions)
+                {
+                    string actionDocFileName = ("actions/" + CharsetHelper.GetSafeName(action.Name) + "-" + content.filename + ".md").Replace(" ", "-");
+                    childFlowsLinks.Add(new MdListItem(new MdLinkSpan(action.Name, actionDocFileName)));
+                }
+                mainDocument.Root.Add(new MdBulletList(childFlowsLinks));
+            }
         }
 
         private void addActionInfo()

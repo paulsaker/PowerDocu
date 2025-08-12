@@ -30,9 +30,9 @@ namespace PowerDocu.SolutionDocumenter
 
         private void anchorTable()
         {
-            solutionDoc.Root.Add(new MdHeading("Table of Contents", 1));
+            solutionDoc.Root.Insert(2,new MdHeading("Table of Contents", 1));
             var anchorTable = GetAllAnchorAttributes();
-            solutionDoc.Root.Insert(2, anchorTable);
+            solutionDoc.Root.Insert(3, anchorTable);
 
         }
 
