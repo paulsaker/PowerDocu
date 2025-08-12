@@ -20,7 +20,7 @@ namespace PowerDocu.FlowDocumenter
         {
             NotificationHelper.SendNotification("Preparing documentation content for " + flow.Name);
             folderPath = path + CharsetHelper.GetSafeName(@"\" + FlowParser.GetNameWithNoGuid(flow.Name) + @"\");
-            filename = CharsetHelper.GetSafeName(flow.Name);
+            filename = CharsetHelper.GetSafeName(FlowParser.GetNameWithNoGuid(flow.Name));
             metadata = new FlowMetadata(flow);
             overview = new FlowOverview();
             connectionReferences = new FlowConnectionReferences(flow);
@@ -64,6 +64,10 @@ namespace PowerDocu.FlowDocumenter
             metadataTable.Add("Documentation generated at", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToShortTimeString());
             metadataTable.Add("Number of Variables", "" + flow.actions.ActionNodes.Count(o => o.Type == "InitializeVariable"));
             metadataTable.Add("Number of Actions", "" + flow.actions.ActionNodes.Count);
+            var childFlows = flow.actions.ActionNodes
+    .Where(action => action.Type.Equals("Workflow", StringComparison.OrdinalIgnoreCase))
+    .ToList().Count();
+            metadataTable.Add("Number of Child Flows", "" + childFlows);
         }
     }
 

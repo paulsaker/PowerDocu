@@ -23,6 +23,11 @@ namespace PowerDocu.SolutionDocumenter
 
         private void buildGraph()
         {
+            if (content.solution.Customizations == null || content.solution.Customizations.getEntities().Count == 0)
+            {
+                NotificationHelper.SendNotification("No Dataverse tables found in the solution");
+                return;
+            }
             rootGraph = RootGraph.CreateNew(
                 GraphType.Undirected,
                 CharsetHelper.GetSafeName(content.solution.UniqueName)
@@ -47,6 +52,7 @@ namespace PowerDocu.SolutionDocumenter
             Edge.IntroduceAttribute(rootGraph, "penwidth", "1");
 
             tableEntities = content.solution.Customizations.getEntities();
+
             entityRelationships = content.solution.Customizations.getEntityRelationships();
             List<string> manyToManyEntityNames = entityRelationships
                 .Where(o => o.getRelationshipType().Equals("ManyToMany"))

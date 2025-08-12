@@ -1,0 +1,46 @@
+X:\PowerDocu-main\PowerDocu.GUI\bin\Debug\net8.0-windows\win-x64>PowerDocu 2.3.0
+Rene Modery
+
+  -p, --itemsToDocument           Semi colon delimited list of paths of items to document
+
+  -o, --outputPath                Destination to write documentation to. Will default to path of item if blank
+
+  -m, --markDown                  Format document as Markdown
+
+  -w, --word                      Format document as Word
+
+  -f, --fullDocumentation         Document changes only or all properties
+
+  -c, --changesOnly               Create full set of documentation (true) or images only (false)
+
+  -d, --defaultValues             Document Canvas App Default values
+
+  -e, --sampledatasources         Document Sample Datasources
+
+  -s, --sortFlowsByName           Sort flows by name
+
+  -i, --updateIcons               Update existing set of connector icons
+
+  -t, --wordTemplate              Path to a word template to use when generating a word document
+
+  -l, --documentSolution          (Default: true) Document the solution
+
+  -p, --documentFlows             (Default: true) Document flows
+
+  -a, --documentApps              (Default: true) Document apps
+
+  -b, --documentAppProperties     (Default: true) Document app properties
+
+  -v, --documentAppVariables      (Default: true) Document app variables
+
+  -x, --documentAppDataSources    (Default: true) Document app data sources
+
+  -r, --documentAppResources      (Default: true) Document app resources
+
+  -g, --documentAppControls       (Default: true) Document app controls
+
+  --help                          Display this help screen.
+
+  --version                       Display version information.
+
+No items to generate documentation on

@@ -37,6 +37,7 @@ namespace PowerDocu.FlowDocumenter
             addTriggerInfo();
             addVariablesInfo();
             addActionInfo();
+            addChildFlows();
             addFlowDetails();
             set.Save(content.folderPath);
             NotificationHelper.SendNotification("Created Markdown documentation for " + content.metadata.Name);
@@ -194,6 +195,14 @@ namespace PowerDocu.FlowDocumenter
                 triggerDoc.Root.Add(new MdHeading("Other Trigger Properties", 3));
                 triggerDoc.Root.Add(new MdParagraph(new MdRawMarkdownSpan(AddExpressionDetails(content.trigger.triggerProperties))));
             }
+        }
+
+        private void addChildFlows()
+        {
+            List<ActionNode> workflowActions = content.actions.actionNodesList
+    .Where(action => action.Type.Equals("Workflow", StringComparison.OrdinalIgnoreCase))
+    .ToList(); 
+            NotificationHelper.SendNotification(getCodeBlock("Found " + workflowActions.Count + " child flows"));
         }
 
         private void addActionInfo()

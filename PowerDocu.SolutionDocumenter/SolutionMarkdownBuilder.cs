@@ -21,10 +21,22 @@ namespace PowerDocu.SolutionDocumenter
 
             addSolutionOverview();
             addSolutionComponents();
+            //TODO Add all the Anchor Tags to a new section using Insert.
+            anchorTable();
             solutionDoc.Save(content.folderPath + "/" + solutionDocumentFileName);
             createOrderFile();
             NotificationHelper.SendNotification("Created Markdown documentation for solution" + content.solution.UniqueName);
         }
+
+        private void anchorTable()
+        {
+            solutionDoc.Root.Add(new MdHeading("Table of Contents", 1));
+            var anchorTable = GetAllAnchorAttributes();
+            solutionDoc.Root.Insert(2, anchorTable);
+
+        }
+
+
 
         private void addSolutionOverview()
         {
@@ -302,7 +314,7 @@ namespace PowerDocu.SolutionDocumenter
                         tableRows.Add(new MdTableRow(columnEntity.getDisplayName() + primaryNameColumn,
                                                     columnEntity.getName(),
                                                     columnEntity.getDataType(),
-                                                    columnEntity.IsAuditEnabled()?"Enabled":"Disabled",
+                                                    columnEntity.IsAuditEnabled() ? "Enabled" : "Disabled",
                                                     columnEntity.isCustomizable().ToString(),
                                                     columnEntity.isRequired().ToString(),
                                                     columnEntity.isSearchable().ToString()
@@ -311,8 +323,9 @@ namespace PowerDocu.SolutionDocumenter
                     solutionDoc.Root.Add(new MdTable(new MdTableRow("Display Name", "Name", "Data type", "Auditing", "Customizable", "Required", "Searchable"), tableRows));
                 }
             }
-            solutionDoc.Root.Add(new MdHeading("Table Relationships", 4));
-            solutionDoc.Root.Add(new MdParagraph(new MdImageSpan("Dataverse Table Relationships", "dataverse.svg")));
+            solutionDoc.Root.Add(new MdHeading("Table Relationships", 3));
+            string newPath = GetLastDirectoryEntry() + "dataverse.svg";
+            solutionDoc.Root.Add(new MdParagraph(new MdImageSpan("Dataverse Table Relationships", newPath)));
         }
 
         private MdImageSpan getAccessLevelIcon(AccessLevel accessLevel)
@@ -357,6 +370,27 @@ namespace PowerDocu.SolutionDocumenter
             {
                 sw.WriteLine(CharsetHelper.GetSafeName(@"AppDoc " + app.Name));
             }
+        }
+        private MdTable GetAllAnchorAttributes()
+        {
+            var tableRows = new List<MdTableRow>();
+            var anchorList = solutionDoc.Root
+                .OfType<MdHeading>()
+                .Where(h => (h.Level == 1 || h.Level == 2 || h.Level == 3) && !string.IsNullOrEmpty(h.Anchor) && !(h.Text.ToString().StartsWith("Solution")))
+                .ToList();
+            foreach (var heading in anchorList)
+            {
+                tableRows.Add(new MdTableRow(new MdLinkSpan(heading.Text.ToString(), "#" + heading.Anchor)));
+            }
+            var myTab = new MdTable(new MdTableRow("Go To"), tableRows);
+            return myTab;
+        }
+        private string GetLastDirectoryEntry()
+        {
+            if (string.IsNullOrEmpty(content.folderPath))
+                return string.Empty;
+            var dir = content.folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            return Path.GetFileName(dir);
         }
     }
 }
